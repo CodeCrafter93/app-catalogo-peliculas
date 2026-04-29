@@ -15,13 +15,11 @@ class CatalogoPeliculasApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      // Definimos la pantalla de inicio como la ruta base
       home: const HomeScreen(),
     );
   }
 }
 
-// Clase correspondiente a la nueva Pantalla de Inicio
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -52,7 +50,6 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12.0),
-              // Cumplimiento estricto de la rúbrica combinado con UX
               const Text(
                 '!Hola!Bienvenido a tu catálogo',
                 style: TextStyle(
@@ -62,7 +59,6 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 50.0),
-              // Botón de navegación para no perder la pantalla anterior
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF45A29E),
@@ -72,7 +68,6 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
                 onPressed: () {
-                  // Invocación del Navigator para transicionar a la otra pantalla
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -97,7 +92,6 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-// Clase correspondiente a tu actividad anterior (conservada intacta)
 class PantallaFichaPelicula extends StatelessWidget {
   const PantallaFichaPelicula({super.key});
 
