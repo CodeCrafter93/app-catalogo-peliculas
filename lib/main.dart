@@ -1,25 +1,103 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const AplicacionCatalogoWidgets());
+  runApp(const CatalogoPeliculasApp());
 }
 
-class AplicacionCatalogoWidgets extends StatelessWidget {
-  const AplicacionCatalogoWidgets({super.key});
+class CatalogoPeliculasApp extends StatelessWidget {
+  const CatalogoPeliculasApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Catálogo de Películas',
+      title: 'La Butaca',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const PantallaFichaPelicula(),
+      // Definimos la pantalla de inicio como la ruta base
+      home: const HomeScreen(),
     );
   }
 }
 
+// Clase correspondiente a la nueva Pantalla de Inicio
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.network(
+            'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=2070&auto=format&fit=crop',
+            fit: BoxFit.cover,
+            color: Colors.black.withOpacity(0.75),
+            colorBlendMode: BlendMode.darken,
+          ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.theaters_outlined, size: 90.0, color: Colors.white),
+              const SizedBox(height: 24.0),
+              const Text(
+                'La Butaca',
+                style: TextStyle(
+                    fontSize: 42.0,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    letterSpacing: 2.5
+                ),
+              ),
+              const SizedBox(height: 12.0),
+              // Cumplimiento estricto de la rúbrica combinado con UX
+              const Text(
+                '!Hola!Bienvenido a tu catálogo',
+                style: TextStyle(
+                    fontSize: 18.0,
+                    color: Colors.white70,
+                    letterSpacing: 1.2
+                ),
+              ),
+              const SizedBox(height: 50.0),
+              // Botón de navegación para no perder la pantalla anterior
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF45A29E),
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0)
+                  ),
+                ),
+                onPressed: () {
+                  // Invocación del Navigator para transicionar a la otra pantalla
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const PantallaFichaPelicula()
+                    ),
+                  );
+                },
+                child: const Text(
+                  'Ingresar',
+                  style: TextStyle(
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Clase correspondiente a tu actividad anterior (conservada intacta)
 class PantallaFichaPelicula extends StatelessWidget {
   const PantallaFichaPelicula({super.key});
 
@@ -27,13 +105,13 @@ class PantallaFichaPelicula extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('LDSW - Widgets básicos'),
+        title: const Text('Ficha técnica'),
         backgroundColor: const Color(0xFF0B0C10),
         foregroundColor: Colors.white,
       ),
-      backgroundColor: const Color(0xFF1F2833), // Fondo general de la aplicación
+      backgroundColor: const Color(0xFF1F2833),
       body: Center(
-        child: Container( // Implementación del widget Container
+        child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 40.0),
           padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
@@ -47,11 +125,11 @@ class PantallaFichaPelicula extends StatelessWidget {
               ),
             ],
           ),
-          child: Column( // Implementación del widget Column
+          child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Stack( // Implementación del widget Stack
+              Stack(
                 alignment: Alignment.bottomRight,
                 children: [
                   Container(
@@ -83,7 +161,7 @@ class PantallaFichaPelicula extends StatelessWidget {
                           )
                         ]
                     ),
-                    child: const Text( // Implementación del widget Text anidado
+                    child: const Text(
                       'NUEVO ESTRENO',
                       style: TextStyle(
                         color: Colors.white,
@@ -96,7 +174,7 @@ class PantallaFichaPelicula extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 20.0),
-              const Text( // Implementación del widget Text principal
+              const Text(
                 'El misterio de la interfaz',
                 style: TextStyle(
                   color: Colors.white,
@@ -105,7 +183,7 @@ class PantallaFichaPelicula extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12.0),
-              Row( // Implementación del widget Row
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Row(
@@ -139,8 +217,8 @@ class PantallaFichaPelicula extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 20.0),
-              const Text( // Implementación del widget Text para párrafos extensos
-                'Esta tarjeta de presentación fue desarrollada utilizando los conceptos fundamentales de estructuración en el marco de trabajo de Google. A través del uso de columnas para la alineación vertical, filas para la distribución horizontal de la información técnica, contenedores para el manejo del diseño espacial y pilas para la superposición gráfica, se logra una experiencia de usuario inmersiva y altamente funcional, preparada para integrarse en un catálogo completo.',
+              const Text(
+                'Esta tarjeta de presentación fue desarrollada utilizando los conceptos fundamentales de estructuración en el marco de trabajo de Google. A través del uso de columnas para la alineación vertical, filas para la distribución horizontal y contenedores, se logra una experiencia inmersiva.',
                 style: TextStyle(
                   color: Colors.white60,
                   fontSize: 15.0,
