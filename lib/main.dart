@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'firebase_options.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const CatalogoPeliculasApp());
 }
 
@@ -45,10 +50,7 @@ class HomeScreen extends StatelessWidget {
               const Text(
                 'La Butaca',
                 style: TextStyle(
-                    fontSize: 42.0,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    letterSpacing: 2.5),
+                    fontSize: 42.0, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 2.5),
               ),
               const SizedBox(height: 12.0),
               const Text(
@@ -60,22 +62,17 @@ class HomeScreen extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF45A29E),
                   padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30.0)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
                 ),
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                        builder: (context) => const CatalogoHttpScreen()),
+                    MaterialPageRoute(builder: (context) => const AgregarPeliculaScreen()),
                   );
                 },
                 child: const Text(
-                  'Ver personajes (PokeAPI)',
-                  style: TextStyle(
-                      fontSize: 18.0,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white),
+                  'Sugerir película (Firebase)',
+                  style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
               ),
             ],
@@ -86,44 +83,52 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-class CatalogoHttpScreen extends StatefulWidget {
-  const CatalogoHttpScreen({super.key});
+class AgregarPeliculaScreen extends StatefulWidget {
+  const AgregarPeliculaScreen({super.key});
 
   @override
-  State<CatalogoHttpScreen> createState() => _CatalogoHttpScreenState();
+  State<AgregarPeliculaScreen> createState() => _AgregarPeliculaScreenState();
 }
 
-class _CatalogoHttpScreenState extends State<CatalogoHttpScreen> {
-  List<dynamic> personajes = [];
-  bool isLoading = true;
+class _AgregarPeliculaScreenState extends State<AgregarPeliculaScreen> {
+  final TextEditingController _tituloController = TextEditingController();
+  final TextEditingController _generoController = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-    fetchDataDeInternet();
-  }
+  bool isSaving = false;
 
-  Future<void> fetchDataDeInternet() async {
+  Future<void> _guardarPelicula() async {
+    if (_tituloController.text.isEmpty || _generoController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, llena todos los campos')),
+      );
+      return;
+    }
+
+    setState(() => isSaving = true);
+
     try {
-      final url = Uri.parse('https://pokeapi.co/api/v2/pokemon?limit=15');
-
-      final response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        final dataDecodificada = json.decode(response.body);
-
-        setState(() {
-          personajes = dataDecodificada['results'];
-          isLoading = false;
-        });
-      } else {
-        throw Exception('Falló la conexión a la API');
-      }
-    } catch (error) {
-      setState(() {
-        isLoading = false;
+      await FirebaseFirestore.instance.collection('peliculas').add({
+        'titulo': _tituloController.text,
+        'genero': _generoController.text,
+        'fecha_agregada': Timestamp.now(),
       });
-      debugPrint('Error en la petición: $error');
+
+      _tituloController.clear();
+      _generoController.clear();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('¡Película guardada en la base de datos exitosamente!'), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al guardar: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      setState(() => isSaving = false);
     }
   }
 
@@ -132,46 +137,61 @@ class _CatalogoHttpScreenState extends State<CatalogoHttpScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF1F2833),
       appBar: AppBar(
-        title: const Text('Directorio HTTP'),
+        title: const Text('Agregar a Firebase'),
         backgroundColor: const Color(0xFF0B0C10),
         foregroundColor: Colors.white,
       ),
-      body: isLoading
-          ? const Center(
-          child: CircularProgressIndicator(color: Color(0xFF66FCF1)))
-          : ListView.builder(
-        padding: const EdgeInsets.all(16.0),
-        itemCount: personajes.length,
-        itemBuilder: (context, index) {
-          final personaje = personajes[index];
-          return Card(
-            color: const Color(0xFF0B0C10),
-            margin: const EdgeInsets.only(bottom: 16.0),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.0),
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Añade una película al sistema',
+              style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            child: ListTile(
-              contentPadding: const EdgeInsets.all(16.0),
-              leading: const CircleAvatar(
-                backgroundColor: Color(0xFF45A29E),
-                child: Icon(Icons.data_object, color: Colors.white),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _tituloController,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                labelText: 'Título de la película',
+                labelStyle: const TextStyle(color: Colors.white54),
+                enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Color(0xFF45A29E))),
+                focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Color(0xFF66FCF1))),
+                fillColor: const Color(0xFF0B0C10),
+                filled: true,
               ),
-              title: Text(
-                personaje['name'].toString().toUpperCase(),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18.0,
-                ),
-              ),
-              subtitle: Text(
-                'Ruta de red: ${personaje['url']}',
-                style: const TextStyle(color: Colors.white54),
-              ),
-              trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white30),
             ),
-          );
-        },
+            const SizedBox(height: 16),
+            TextField(
+              controller: _generoController,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                labelText: 'Género (ej. Ciencia ficción)',
+                labelStyle: const TextStyle(color: Colors.white54),
+                enabledBorder: const OutlineInputBorder(borderSide: BorderSide(color: Color(0xFF45A29E))),
+                focusedBorder: const OutlineInputBorder(borderSide: BorderSide(color: Color(0xFF66FCF1))),
+                fillColor: const Color(0xFF0B0C10),
+                filled: true,
+              ),
+            ),
+            const SizedBox(height: 30),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF66FCF1),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+          ),
+          onPressed: isSaving ? null : _guardarPelicula,
+          child: isSaving
+              ? const CircularProgressIndicator(color: Colors.black)
+              : const Text(
+            'Guardar en la nube',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
